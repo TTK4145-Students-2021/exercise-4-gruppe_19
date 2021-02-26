@@ -25,39 +25,57 @@ Produce a reasonably-sized document with considerations on these questions, your
 
  - Guarantees about elevators:
    - What should happen if one of the nodes loses its network connection?
+The network module will be design such that is can operate perfectly fine without it. It is not designed with unnecessary nodes, and the logic of the elevator’soperation will be embedded in the elevator nodes. The node that loses connection will try to reconnect and report the error such that the user is well aware. 
    - What should happen if one of the nodes loses power for a brief moment?
+This will not affect the rest of the system, since it will only increase the operation time if on elevator is down. 
    - What should happen if some unforeseen event causes the elevator to never reach its destination, but communication remains intact?
+It will retry. If it still doesn’t work, it will send the floor request to the elevator with the second lowest estimated time to fulfill all its request. 
    
  - Guarantees about orders:
    - Do all your nodes need to "agree" on an order for it to be accepted? In that case, how is a faulty node handled? 
+No just one of them. It is although preferred that all agree for the request to be distributed the most sufficient. 
    - How can you be sure that a remote node "agrees" on an order?
+If all nodes are well operating the system will be designed such that there will be no logic clash for each node. If this still isn’t the case it. 
    - How do you handle losing packets containing order information between the nodes?
+The messages will be braodcasted so if one message is lost there is no big deal. 
    - Do you share the entire state of the current orders, or just the changes as they occur?
      - For either one: What should happen when an elevator re-joins after having been offline?
+The nodes for the bottom pushed outside the elevator will send the request to all the elevators. The elevators will send a float variable with the estimated time to be fulfil the orders including the one requested to each other. Further the one with the lowest estimated time will accept the request. When a node is being offline and therefore don’t send its estimated time to the other elevators, it will be assumed it is unable to reach and one of the other elevators will take the request. If it re-joins it will send its estimated time as per usual and work perfectly fine with the rest of the system. 
 
 *Pencil and paper is encouraged! Drawing a diagram/graph of the message pathways between nodes (elevators) will aid in visualizing complexity. Drawing the order of messages through time will let you more easily see what happens when communication fails.*
      
  - Topology:
    - What kind of network topology do you want to  implement? Peer to peer? Master slave? Circle? Something else?
+The topology that is using is Peer to peer. This often gives a more complex node relationship but makes every node more independent
    - In the case of a master-slave configuration: Do you have only one program, or two (a "master" executable and a "slave")?
      - How do you handle a master node disconnecting?
      - Is a slave becoming a master a part of the network module?
+Not master slave
    - In the case of a peer-to-peer configuration:
      - Who decides the order assignment?
+Every elevator by communication. More details are provided in previous question. 
      - What happens if someone presses the same button on two panels at once? Is this even a problem?
+The floor bottoms will have separated addresses, and there is a hierarchy of the periodization of handling the floor request and accepting the floor request, in case of such collision as bottom pressed at the same time, or same estimated time on two elevators. 
      
  - Technical implementation and module boundary:
    - Protocols: TCP, UDP, or something else?
       - If you are using TCP: How do you know who connects to who?
         - Do you need an initialization phase to set up all the connections?
       - If you are using UDP broadcast: How do you differentiate between messages from different nodes?
+The messages is structs converted into a Json file. This will include an ID of the sender. 
       - If you are using a library or language feature to do the heavy lifting - what is it, and does it satisfy your needs?
+There is no specific plan do use any library except the standard library that Go provides but this may change through the semester. 
    - Do you want to build the necessary reliability into the module, or handle that at a higher level?
+Yes we want to build much of it in the module to make the code deciding how the elevator behaves as clean as possible. 
    - Is detection (and handling) of things like lost messages or lost nodes a part of the network module?
+No, the messages broadcast so if one message gets lost it is not a big deal. 
    - How will you pack and unpack (serialize) data?
      - Do you use structs, classes, tuples, lists, ...?
+We would use structs. This a structured way to include all the information needed in the message. We don’t need the private property classes provides in this case. 
      - JSON, XML, plain strings, or just plain memcpy?
+Json. This is because it is great recourse of how to do this using go. 
      - Is serialization a part of the network module?
+Yes, it is.
 
 
 Part 2: Getting networking started
